@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare System</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .icon-lg {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, createContext, useContext } = React;
+
+        // Icon Components
+        const User = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+        );
+
+        const Building2 = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+        );
+
+        const LogOut = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+        );
+
+        const CheckCircle = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const XCircle = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const UserPlus = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+        );
+
+        const FileText = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        );
+
+        const Lock = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        );
+
+        const Calendar = ({ className = "icon" }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        // Organ System Categories
+        const organSystems = [
+            'Cardiovascular System',
+            'Respiratory System',
+            'Nervous System',
+            'Digestive System',
+            'Musculoskeletal System',
+            'Endocrine System',
+            'Urinary System',
+            'Reproductive System',
+            'Immune System',
+            'Integumentary System',
+            'General Medicine'
+        ];
+
+        // Mock Data
+        const mockData = {
+            users: {
+                'doctor001': {
+                    id: 'doctor001',
+                    username: 'doctor001',
+                    password: 'password123',
+                    role: 'doctor',
+                    name: 'Dr. Alice Smith',
+                    organization: 'SAAS Hospital',
+                    portal: 'hospital',
+                    specialization: 'Cardiovascular System'
+                },
+                'patient001': {
+                    id: 'patient001',
+                    username: 'patient001',
+                    password: 'patient123',
+                    role: 'patient',
+                    name: 'John Doe',
+                    patientId: 'patient-demo-001',
+                    portal: 'patient'
+                },
+                'clinical001': {
+                    id: 'clinical001',
+                    username: 'clinical001',
+                    password: 'clinical123',
+                    role: 'clinical',
+                    name: 'Dr. Sarah Wilson',
+                    organization: 'City Medical Clinic',
+                    portal: 'clinic',
+                    specialization: 'Respiratory System'
+                },
+                'receptionist001': {
+                    id: 'receptionist001',
+                    username: 'receptionist001',
+                    password: 'reception123',
+                    role: 'receptionist',
+                    name: 'Emma Thompson',
+                    organization: 'SAAS Hospital',
+                    portal: 'hospital'
+                },
+                'nurse001': {
+                    id: 'nurse001',
+                    username: 'nurse001',
+                    password: 'nurse123',
+                    role: 'nurse',
+                    name: 'Nurse Mary Johnson',
+                    organization: 'SAAS Hospital',
+                    portal: 'hospital'
+                }
+            },
+            patients: {
+                'patient-demo-001': {
+                    resourceType: 'Patient',
+                    id: 'patient-demo-001',
+                    name: [{ family: 'Doe', given: ['John'] }],
+                    gender: 'male',
+                    birthDate: '1980-01-15',
+                    telecom: [
+                        { system: 'email', value: 'john.doe@email.com' },
+                        { system: 'phone', value: '555-0123' }
+                    ],
+                    healthInfo: [],
+                    authorizedDoctors: ['doctor001']
+                }
+            },
+            appointments: {
+                'patient-demo-001': []
+            },
+            transferRequests: {
+                'patient-demo-001': []
+            },
+            accessLogs: {
+                'patient-demo-001': []
+            },
+            auditLogs: []
+        };
+
+        // Password Validation
+        const validatePassword = (password) => {
+            const errors = [];
+            if (password.length < 8) {
+                errors.push('Password must be at least 8 characters long');
+            }
+            if (!/[A-Z]/.test(password)) {
+                errors.push('Password must contain at least one uppercase letter');
+            }
+            if (!/[a-z]/.test(password)) {
+                errors.push('Password must contain at least one lowercase letter');
+            }
+            if (!/[0-9]/.test(password)) {
+                errors.push('Password must contain at least one number');
+            }
+            return errors;
+        };
+
+        // Audit Log Function
+        const logAudit = (user, action, details) => {
+            const timestamp = new Date().toISOString();
+            mockData.auditLogs.push({
+                userId: user.id,
+                userName: user.name,
+                role: user.role,
+                action,
+                details,
+                timestamp
+            });
+        };
+
+        // Auth Context
+        const AuthContext = createContext();
+
+        const AuthProvider = ({ children }) => {
+            const [user, setUser] = useState(null);
+            const [token, setToken] = useState(null);
+
+            useEffect(() => {
+                const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+                const storedToken = sessionStorage.getItem('token');
+                if (storedUser && storedToken) {
+                    setUser(storedUser);
+                    setToken(storedToken);
+                }
+            }, []);
+
+            const login = async (username, password) => {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const user = mockData.users[username];
+                if (!user || user.password !== password) {
+                    return { success: false, error: 'Invalid credentials' };
+                }
+
+                const mockToken = 'mock-jwt-token-' + Date.now();
+                const userData = {
+                    id: user.id,
+                    username: user.username,
+                    role: user.role,
+                    name: user.name,
+                    organization: user.organization,
+                    portal: user.portal,
+                    patientId: user.patientId,
+                    specialization: user.specialization
+                };
+
+                setToken(mockToken);
+                setUser(userData);
+                sessionStorage.setItem('token', mockToken);
+                sessionStorage.setItem('user', JSON.stringify(userData));
+
+                logAudit(userData, 'Login', `User ${userData.name} logged in`);
+
+                return { success: true };
+            };
+
+            const logout = () => {
+                if (user) {
+                    logAudit(user, 'Logout', `User ${user.name} logged out`);
+                }
+                setToken(null);
+                setUser(null);
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
+            };
+
+            return React.createElement(AuthContext.Provider, { value: { user, token, login, logout } }, children);
+        };
+
+        const useAuth = () => useContext(AuthContext);
+
+        // Mock API
+        const mockApiCall = async (endpoint, options = {}) => {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const method = options.method || 'GET';
+            const body = options.body ? JSON.parse(options.body) : null;
+
+            if (endpoint.includes('/api/patients') && method === 'GET') {
+                return { patients: Object.values(mockData.patients) };
+            }
+
+            if (endpoint.includes('/api/users') && method === 'POST') {
+                const newUserId = body.username;
+                mockData.users[newUserId] = { id: newUserId, ...body };
+                return mockData.users[newUserId];
+            }
+
+            if (endpoint.includes('/api/appointments') && method === 'POST') {
+                const appointmentId = `appt-${Date.now()}`;
+                const appointment = { id: appointmentId, ...body, status: 'pending' };
+                mockData.appointments[body.patientId].push(appointment);
+                return appointment;
+            }
+
+            if (endpoint.includes('/api/appointments') && method === 'PUT') {
+                const appointmentId = body.id;
+                const patientId = body.patientId;
+                const appointment = mockData.appointments[patientId].find(a => a.id === appointmentId);
+                if (appointment) {
+                    appointment.status = body.status;
+                    appointment.notes = body.notes;
+                }
+                return appointment;
+            }
+
+            if (endpoint.includes('/api/patient-data') && method === 'POST') {
+                const patientId = body.patientId;
+                mockData.patients[patientId].healthInfo.push(body.healthInfo);
+                return { success: true };
+            }
+
+            if (endpoint.includes('/api/data-transfer') && method === 'POST') {
+                const transferId = `transfer-${Date.now()}`;
+                const transfer = { id: transferId, ...body, status: 'pending' };
+                mockData.transferRequests[body.patientId].push(transfer);
+                return transfer;
+            }
+
+            if (endpoint.includes('/api/authorize-doctor') && method === 'POST') {
+                const { patientId, doctorId } = body;
+                if (!mockData.patients[patientId].authorizedDoctors.includes(doctorId)) {
+                    mockData.patients[patientId].authorizedDoctors.push(doctorId);
+                }
+                return { success: true };
+            }
+
+            return {};
+        };
+
+        // Login Component
+        const Login = () => {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const { login } = useAuth();
+
+            const handleLogin = async () => {
+                if (!username.trim() || !password.trim()) return;
+
+                setLoading(true);
+                setError('');
+
+                const result = await login(username, password);
+                if (!result.success) {
+                    setError(result.error);
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                    <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+                        <div className="text-center mb-8">
+                            <Building2 className="icon-lg mx-auto mb-4 text-blue-600" />
+                            <h1 className="text-2xl font-bold text-gray-900">Healthcare System</h1>
+                            <p className="text-gray-600 mt-2">Login to access patient records</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <div className="flex items-center p-2 border rounded">
+                                    <User className="w-5 h-5 text-gray-400 mr-2" />
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        placeholder="Username"
+                                        className="flex-1 outline-none"
+                                        onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="flex items-center p-2 border rounded">
+                                    <Lock className="w-5 h-5 text-gray-400 mr-2" />
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Password"
+                                        className="flex-1 outline-none"
+                                        onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                                    />
+                                </div>
+                            </div>
+
+                            {error && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleLogin}
+                                disabled={loading || !username.trim() || !password.trim()}
+                                className="w-full p-3 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? 'Signing in...' : 'Sign In'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Appointment Booking Component (for Patients)
+        const AppointmentBooking = () => {
+            const { user } = useAuth();
+            const [doctors, setDoctors] = useState([]);
+            const [selectedDoctor, setSelectedDoctor] = useState('');
+            const [appointmentDate, setAppointmentDate] = useState('');
+            const [reason, setReason] = useState('');
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const allDoctors = Object.values(mockData.users).filter(u => u.role === 'doctor');
+                setDoctors(allDoctors);
+            }, []);
+
+            const bookAppointment = async () => {
+                setError(null);
+                if (!selectedDoctor || !appointmentDate || !reason) {
+                    setError('All fields are required.');
+                    return;
+                }
+
+                try {
+                    const appointmentData = {
+                        patientId: user.patientId,
+                        doctorId: selectedDoctor,
+                        date: appointmentDate,
+                        reason,
+                        patientName: user.name
+                    };
+
+                    await mockApiCall('/api/appointments', {
+                        method: 'POST',
+                        body: JSON.stringify(appointmentData)
+                    });
+
+                    await mockApiCall('/api/authorize-doctor', {
+                        method: 'POST',
+                        body: JSON.stringify({ patientId: user.patientId, doctorId: selectedDoctor })
+                    });
+
+                    logAudit(user, 'Book Appointment', `Booked appointment with doctor ${selectedDoctor} on ${appointmentDate} and authorized access`);
+
+                    setSuccessMessage('Appointment booked successfully. Awaiting doctor approval.');
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    setSelectedDoctor('');
+                    setAppointmentDate('');
+                    setReason('');
+                } catch (error) {
+                    setError('Failed to book appointment: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Book Appointment</h2>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    <div className="p-4 bg-white rounded shadow">
+                        <h3 className="text-lg font-semibold mb-4">New Appointment</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                            <select
+                                value={selectedDoctor}
+                                onChange={(e) => setSelectedDoctor(e.target.value)}
+                                className="p-2 border rounded"
+                            >
+                                <option value="">Select Doctor</option>
+                                {doctors.map(doctor => (
+                                    <option key={doctor.id} value={doctor.id}>
+                                        {doctor.name} ({doctor.specialization}, {doctor.organization})
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="datetime-local"
+                                value={appointmentDate}
+                                onChange={(e) => setAppointmentDate(e.target.value)}
+                                className="p-2 border rounded"
+                            />
+                            <textarea
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder="Reason for appointment"
+                                className="p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mt-4 flex space-x-2">
+                            <button
+                                onClick={bookAppointment}
+                                disabled={!selectedDoctor || !appointmentDate || !reason}
+                                className="p-2 bg-green-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Book Appointment
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Your Appointments</h3>
+                        {mockData.appointments[user.patientId].length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No appointments booked yet.</p>
+                            </div>
+                        ) : (
+                            mockData.appointments[user.patientId].map(appointment => (
+                                <div key={appointment.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">Appointment with {mockData.users[appointment.doctorId].name}</h4>
+                                            <p className="text-sm text-gray-600">Date: {new Date(appointment.date).toLocaleString()}</p>
+                                            <p className="text-sm text-gray-600">Reason: {appointment.reason}</p>
+                                            <p className="text-sm text-blue-600 font-medium">Status: {appointment.status}</p>
+                                            {appointment.notes && (
+                                                <p className="text-sm text-gray-600">Doctor Notes: {appointment.notes}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Doctor Appointments Component
+        const DoctorAppointments = () => {
+            const { user } = useAuth();
+            const [appointments, setAppointments] = useState([]);
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const allAppointments = Object.values(mockData.appointments).flat().filter(a => a.doctorId === user.id);
+                setAppointments(allAppointments);
+            }, [user.id]);
+
+            const updateAppointment = async (appointmentId, patientId, status, notes = '') => {
+                setError(null);
+                try {
+                    await mockApiCall('/api/appointments', {
+                        method: 'PUT',
+                        body: JSON.stringify({ id: appointmentId, patientId, status, notes })
+                    });
+
+                    if (status === 'approved') {
+                        await mockApiCall('/api/authorize-doctor', {
+                            method: 'POST',
+                            body: JSON.stringify({ patientId, doctorId: user.id })
+                        });
+                    }
+
+                    logAudit(user, `Appointment ${status}`, `Appointment ${appointmentId} ${status} for patient ${patientId}${status === 'approved' ? ' and authorized access' : ''}`);
+
+                    setSuccessMessage(`Appointment ${status} successfully.`);
+                    setTimeout(() => setSuccessMessage(null), 5000);
+
+                    const allAppointments = Object.values(mockData.appointments).flat().filter(a => a.doctorId === user.id);
+                    setAppointments(allAppointments);
+                } catch (error) {
+                    setError('Failed to update appointment: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Manage Appointments</h2>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Your Appointments ({appointments.length})</h3>
+                        {appointments.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No appointments scheduled.</p>
+                            </div>
+                        ) : (
+                            appointments.map(appointment => (
+                                <div key={appointment.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">Patient: {appointment.patientName}</h4>
+                                            <p className="text-sm text-gray-600">Date: {new Date(appointment.date).toLocaleString()}</p>
+                                            <p className="text-sm text-gray-600">Reason: {appointment.reason}</p>
+                                            <p className="text-sm text-blue-600 font-medium">Status: {appointment.status}</p>
+                                        </div>
+                                        {appointment.status === 'pending' && (
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => updateAppointment(appointment.id, appointment.patientId, 'approved')}
+                                                    className="p-2 bg-green-500 text-white rounded"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => updateAppointment(appointment.id, appointment.patientId, 'rejected', 'Appointment rejected by doctor')}
+                                                    className="p-2 bg-red-500 text-white rounded"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Patient Data Management Component
+        const PatientDataManagement = () => {
+            const { user } = useAuth();
+            const [patients, setPatients] = useState([]);
+            const [selectedPatient, setSelectedPatient] = useState('');
+            const [healthInfo, setHealthInfo] = useState('');
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const authorizedPatients = Object.values(mockData.patients).filter(p => 
+                    p.authorizedDoctors.includes(user.id)
+                );
+                setPatients(authorizedPatients);
+            }, [user.id]);
+
+            const addHealthInfo = async () => {
+                setError(null);
+                if (!selectedPatient || !healthInfo) {
+                    setError('Please select a patient and provide health information.');
+                    return;
+                }
+
+                try {
+                    await mockApiCall('/api/patient-data', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            patientId: selectedPatient,
+                            healthInfo: {
+                                date: new Date().toISOString(),
+                                details: healthInfo,
+                                addedBy: user.name
+                            }
+                        })
+                    });
+
+                    logAudit(user, 'Add Health Info', `Added health info for patient ${selectedPatient}`);
+
+                    setSuccessMessage('Health information added successfully.');
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    setSelectedPatient('');
+                    setHealthInfo('');
+                } catch (error) {
+                    setError('Failed to add health info: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Patient Data Management</h2>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    <div className="p-4 bg-white rounded shadow">
+                        <h3 className="text-lg font-semibold mb-4">Add Health Information</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                            <select
+                                value={selectedPatient}
+                                onChange={(e) => setSelectedPatient(e.target.value)}
+                                className="p-2 border rounded"
+                            >
+                                <option value="">Select Patient</option>
+                                {patients.map(patient => (
+                                    <option key={patient.id} value={patient.id}>
+                                        {patient.name[0].given[0]} {patient.name[0].family} ({patient.id})
+                                    </option>
+                                ))}
+                            </select>
+                            <textarea
+                                value={healthInfo}
+                                onChange={(e) => setHealthInfo(e.target.value)}
+                                placeholder="Enter health information (e.g., diagnosis, treatment)"
+                                className="p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mt-4">
+                            <button
+                                onClick={addHealthInfo}
+                                disabled={!selectedPatient || !healthInfo}
+                                className="p-2 bg-green-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Add Health Info
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Patient Records</h3>
+                        {patients.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No authorized patients found.</p>
+                            </div>
+                        ) : (
+                            patients.map(patient => (
+                                <div key={patient.id} className="p-4 bg-white rounded shadow border">
+                                    <h4 className="font-medium text-lg">{patient.name[0].given[0]} {patient.name[0].family}</h4>
+                                    <p className="text-sm text-gray-600">Patient ID: {patient.id}</p>
+                                    <div className="mt-2">
+                                        <h5 className="text-sm font-semibold">Health Information:</h5>
+                                        {patient.healthInfo.length === 0 ? (
+                                            <p className="text-sm text-gray-600">No health information recorded.</p>
+                                        ) : (
+                                            patient.healthInfo.map((info, index) => (
+                                                <div key={index} className="mt-1">
+                                                    <p className="text-sm text-gray-600">Date: {new Date(info.date).toLocaleString()}</p>
+                                                    <p className="text-sm text-gray-600">Details: {info.details}</p>
+                                                    <p className="text-sm text-gray-500">Added by: {info.addedBy}</p>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Data Transfer Component
+        const DataTransfer = () => {
+            const { user } = useAuth();
+            const [patients, setPatients] = useState([]);
+            const [selectedPatient, setSelectedPatient] = useState('');
+            const [selectedStaff, setSelectedStaff] = useState('');
+            const [staffList, setStaffList] = useState([]);
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const authorizedPatients = Object.values(mockData.patients).filter(p => 
+                    p.authorizedDoctors.includes(user.id)
+                );
+                setPatients(authorizedPatients);
+
+                const staff = Object.values(mockData.users).filter(u => 
+                    ['doctor', 'nurse', 'clinical'].includes(u.role) && u.id !== user.id
+                );
+                setStaffList(staff);
+            }, [user.id]);
+
+            const requestDataTransfer = async () => {
+                setError(null);
+                if (!selectedPatient || !selectedStaff) {
+                    setError('Please select a patient and a staff member.');
+                    return;
+                }
+
+                try {
+                    const staff = mockData.users[selectedStaff];
+                    const transferData = {
+                        patientId: selectedPatient,
+                        fromUserId: user.id,
+                        toUserId: selectedStaff,
+                        toUserRole: staff.role,
+                        toUserName: staff.name
+                    };
+
+                    await mockApiCall('/api/data-transfer', {
+                        method: 'POST',
+                        body: JSON.stringify(transferData)
+                    });
+
+                    if (staff.role !== 'doctor') {
+                        await mockApiCall('/api/authorize-doctor', {
+                            method: 'POST',
+                            body: JSON.stringify({ patientId: selectedPatient, doctorId: selectedStaff })
+                        });
+                    }
+
+                    logAudit(user, 'Request Data Transfer', `Requested data transfer for patient ${selectedPatient} to ${staff.name}${staff.role !== 'doctor' ? ' and authorized access' : ''}`);
+
+                    setSuccessMessage(`Data transfer requested to ${staff.name}${staff.role !== 'doctor' ? ' and access granted' : ''}.`);
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    setSelectedPatient('');
+                    setSelectedStaff('');
+                } catch (error) {
+                    setError('Failed to request data transfer: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Data Transfer</h2>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    <div className="p-4 bg-white rounded shadow">
+                        <h3 className="text-lg font-semibold mb-4">Request Data Transfer</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                            <select
+                                value={selectedPatient}
+                                onChange={(e) => setSelectedPatient(e.target.value)}
+                                className="p-2 border rounded"
+                            >
+                                <option value="">Select Patient</option>
+                                {patients.map(patient => (
+                                    <option key={patient.id} value={patient.id}>
+                                        {patient.name[0].given[0]} {patient.name[0].family} ({patient.id})
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={selectedStaff}
+                                onChange={(e) => setSelectedStaff(e.target.value)}
+                                className="p-2 border rounded"
+                            >
+                                <option value="">Select Staff</option>
+                                {staffList.map(staff => (
+                                    <option key={staff.id} value={staff.id}>
+                                        {staff.name} ({staff.role}, {staff.organization})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="mt-4">
+                            <button
+                                onClick={requestDataTransfer}
+                                disabled={!selectedPatient || !selectedStaff}
+                                className="p-2 bg-green-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Request Transfer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Pending Data Transfers</h3>
+                        {Object.values(mockData.transferRequests).flat().filter(t => t.fromUserId === user.id || t.toUserId === user.id).length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No pending data transfers.</p>
+                            </div>
+                        ) : (
+                            Object.values(mockData.transferRequests).flat().filter(t => t.fromUserId === user.id || t.toUserId === user.id).map(transfer => (
+                                <div key={transfer.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">Patient: {mockData.patients[transfer.patientId].name[0].given[0]} {mockData.patients[transfer.patientId].name[0].family}</h4>
+                                            <p className="text-sm text-gray-600">From: {mockData.users[transfer.fromUserId].name}</p>
+                                            <p className="text-sm text-gray-600">To: {transfer.toUserName} ({transfer.toUserRole})</p>
+                                            <p className="text-sm text-blue-600 font-medium">Status: {transfer.status}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Patient Authorization Component
+        const PatientAuthorization = () => {
+            const { user } = useAuth();
+            const [transferRequests, setTransferRequests] = useState([]);
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                const requests = mockData.transferRequests[user.patientId].filter(t => t.toUserRole === 'doctor' && t.status === 'pending');
+                setTransferRequests(requests);
+            }, [user.patientId]);
+
+            const authorizeDoctor = async (transferId, doctorId) => {
+                setError(null);
+                try {
+                    await mockApiCall('/api/authorize-doctor', {
+                        method: 'POST',
+                        body: JSON.stringify({ patientId: user.patientId, doctorId })
+                    });
+
+                    const transfer = mockData.transferRequests[user.patientId].find(t => t.id === transferId);
+                    transfer.status = 'approved';
+
+                    logAudit(user, 'Authorize Doctor', `Authorized doctor ${doctorId} to access records`);
+
+                    setSuccessMessage('Doctor authorized successfully.');
+                    setTimeout(() => setSuccessMessage(null), 5000);
+
+                    const requests = mockData.transferRequests[user.patientId].filter(t => t.toUserRole === 'doctor' && t.status === 'pending');
+                    setTransferRequests(requests);
+                } catch (error) {
+                    setError('Failed to authorize doctor: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Authorize Doctor Access</h2>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Pending Authorization Requests</h3>
+                        {transferRequests.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No pending authorization requests.</p>
+                            </div>
+                        ) : (
+                            transferRequests.map(transfer => (
+                                <div key={transfer.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">Doctor: {transfer.toUserName}</h4>
+                                            <p className="text-sm text-gray-600">Requested by: {mockData.users[transfer.fromUserId].name}</p>
+                                            <p className="text-sm text-blue-600 font-medium">Status: {transfer.status}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => authorizeDoctor(transfer.id, transfer.toUserId)}
+                                            className="p-2 bg-green-500 text-white rounded"
+                                        >
+                                            Authorize
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Doctor Management Component
+        const DoctorManagement = () => {
+            const { user } = useAuth();
+            const [doctors, setDoctors] = useState([]);
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+            const [newDoctor, setNewDoctor] = useState({
+                username: '',
+                password: '',
+                name: '',
+                specialization: 'General Medicine',
+                organization: user.organization || 'SAAS Hospital',
+                portal: user.portal || 'hospital',
+                role: 'doctor'
+            });
+
+            useEffect(() => {
+                const allDoctors = Object.values(mockData.users).filter(u => 
+                    u.role === 'doctor' && u.organization === user.organization
+                );
+                setDoctors(allDoctors);
+            }, [user.organization]);
+
+            const addDoctor = async () => {
+                setError(null);
+                
+                if (mockData.users[newDoctor.username]) {
+                    setError('Username already exists. Please choose a different username.');
+                    return;
+                }
+
+                const passwordErrors = validatePassword(newDoctor.password);
+                if (passwordErrors.length > 0) {
+                    setError(passwordErrors.join(', '));
+                    return;
+                }
+
+                try {
+                    await mockApiCall('/api/users', {
+                        method: 'POST',
+                        body: JSON.stringify(newDoctor)
+                    });
+
+                    logAudit(user, 'Add Doctor', `Added doctor: ${newDoctor.name} (${newDoctor.specialization})`);
+
+                    setSuccessMessage(`Doctor ${newDoctor.name} (${newDoctor.specialization}) added successfully.`);
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    
+                    setShowAddForm(false);
+                    setNewDoctor({
+                        username: '',
+                        password: '',
+                        name: '',
+                        specialization: 'General Medicine',
+                        organization: user.organization || 'SAAS Hospital',
+                        portal: user.portal || 'hospital',
+                        role: 'doctor'
+                    });
+
+                    const allDoctors = Object.values(mockData.users).filter(u => 
+                        u.role === 'doctor' && u.organization === user.organization
+                    );
+                    setDoctors(allDoctors);
+                } catch (error) {
+                    setError('Failed to add doctor: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between">
+                        <h2 className="text-xl font-bold">Doctor Management</h2>
+                        <button
+                            onClick={() => setShowAddForm(true)}
+                            className="flex items-center p-2 bg-green-500 text-white rounded"
+                        >
+                            <UserPlus className="w-4 h-4 mr-2" /> Add New Doctor
+                        </button>
+                    </div>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    {showAddForm && (
+                        <div className="p-4 bg-white rounded shadow">
+                            <h3 className="text-lg font-semibold mb-4">Add New Doctor</h3>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    value={newDoctor.username}
+                                    onChange={(e) => setNewDoctor({ ...newDoctor, username: e.target.value })}
+                                    placeholder="Username"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    value={newDoctor.name}
+                                    onChange={(e) => setNewDoctor({ ...newDoctor, name: e.target.value })}
+                                    placeholder="Full Name (Dr. John Smith)"
+                                    className="p-2 border rounded"
+                                />
+                                
+                                <div className="col-span-2">
+                                    <input
+                                        type="password"
+                                        value={newDoctor.password}
+                                        onChange={(e) => setNewDoctor({ ...newDoctor, password: e.target.value })}
+                                        placeholder="Password"
+                                        className="w-full p-2 border rounded"
+                                    />
+                                </div>
+
+                                <select
+                                    value={newDoctor.specialization}
+                                    onChange={(e) => setNewDoctor({ ...newDoctor, specialization: e.target.value })}
+                                    className="p-2 border rounded col-span-2"
+                                >
+                                    {organSystems.map(system => (
+                                        <option key={system} value={system}>{system}</option>
+                                    ))}
+                                </select>
+
+                                <input
+                                    type="text"
+                                    value={newDoctor.organization}
+                                    onChange={(e) => setNewDoctor({ ...newDoctor, organization: e.target.value })}
+                                    placeholder="Organization"
+                                    className="p-2 border rounded col-span-2"
+                                />
+                            </div>
+
+                            <div className="mt-4 flex space-x-2">
+                                <button 
+                                    onClick={addDoctor} 
+                                    disabled={!newDoctor.username || !newDoctor.name || !newDoctor.password}
+                                    className="p-2 bg-green-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Add Doctor
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setShowAddForm(false);
+                                        setError(null);
+                                    }} 
+                                    className="p-2 bg-gray-300 rounded"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Current Doctors ({doctors.length})</h3>
+                        {doctors.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No doctors registered in your organization yet.</p>
+                            </div>
+                        ) : (
+                            doctors.map((doctor) => (
+                                <div key={doctor.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">{doctor.name}</h4>
+                                            <p className="text-sm text-gray-600">Username: {doctor.username}</p>
+                                            <p className="text-sm text-blue-600 font-medium">Specialization: {doctor.specialization}</p>
+                                            <p className="text-xs text-gray-500">Organization: {doctor.organization}</p>
+                                        </div>
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                            Active Doctor
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Patient Management Component
+        const PatientManagement = () => {
+            const { user } = useAuth();
+            const [patients, setPatients] = useState([]);
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [successMessage, setSuccessMessage] = useState(null);
+            const [error, setError] = useState(null);
+            const [newPatient, setNewPatient] = useState({
+                username: '',
+                password: '',
+                firstName: '',
+                lastName: '',
+                gender: 'male',
+                birthDate: '',
+                email: '',
+                phone: ''
+            });
+
+            useEffect(() => {
+                const allPatients = Object.values(mockData.users).filter(u => u.role === 'patient');
+                setPatients(allPatients);
+            }, []);
+
+            const addPatient = async () => {
+                setError(null);
+                
+                if (mockData.users[newPatient.username]) {
+                    setError('Username already exists. Please choose a different username.');
+                    return;
+                }
+
+                const passwordErrors = validatePassword(newPatient.password);
+                if (passwordErrors.length > 0) {
+                    setError(passwordErrors.join(', '));
+                    return;
+                }
+
+                if (!newPatient.firstName || !newPatient.lastName || !newPatient.birthDate || !newPatient.email || !newPatient.phone) {
+                    setError('All fields are required.');
+                    return;
+                }
+
+                try {
+                    const patientCount = Object.keys(mockData.patients).length + 1;
+                    const patientId = `patient-demo-${String(patientCount).padStart(3, '0')}`;
+
+                    const userData = {
+                        id: newPatient.username,
+                        username: newPatient.username,
+                        password: newPatient.password,
+                        role: 'patient',
+                        name: `${newPatient.firstName} ${newPatient.lastName}`,
+                        portal: 'patient',
+                        patientId: patientId
+                    };
+
+                    mockData.users[newPatient.username] = userData;
+
+                    mockData.patients[patientId] = {
+                        resourceType: 'Patient',
+                        id: patientId,
+                        name: [{ family: newPatient.lastName, given: [newPatient.firstName] }],
+                        gender: newPatient.gender,
+                        birthDate: newPatient.birthDate,
+                        telecom: [
+                            { system: 'email', value: newPatient.email },
+                            { system: 'phone', value: newPatient.phone }
+                        ],
+                        healthInfo: [],
+                        authorizedDoctors: []
+                    };
+
+                    mockData.appointments[patientId] = [];
+                    mockData.transferRequests[patientId] = [];
+                    mockData.accessLogs[patientId] = [];
+
+                    logAudit(user, 'Add Patient', `Added patient: ${userData.name} (ID: ${patientId})`);
+
+                    setSuccessMessage(`Patient ${userData.name} added successfully. Patient ID: ${patientId}`);
+                    setTimeout(() => setSuccessMessage(null), 5000);
+                    
+                    setShowAddForm(false);
+                    setNewPatient({
+                        username: '',
+                        password: '',
+                        firstName: '',
+                        lastName: '',
+                        gender: 'male',
+                        birthDate: '',
+                        email: '',
+                        phone: ''
+                    });
+
+                    const allPatients = Object.values(mockData.users).filter(u => u.role === 'patient');
+                    setPatients(allPatients);
+                } catch (error) {
+                    setError('Failed to add patient: ' + error.message);
+                }
+            };
+
+            return (
+                <div className="space-y-6">
+                    <div className="flex justify-between">
+                        <h2 className="text-xl font-bold">Patient Management</h2>
+                        <button
+                            onClick={() => setShowAddForm(true)}
+                            className="flex items-center p-2 bg-green-500 text-white rounded"
+                        >
+                            <UserPlus className="w-4 h-4 mr-2" /> Add New Patient
+                        </button>
+                    </div>
+
+                    {successMessage && (
+                        <div className="p-3 bg-green-100 text-green-700 rounded">
+                            <CheckCircle className="w-4 h-4 inline mr-2" /> {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-100 text-red-700 rounded">
+                            <XCircle className="w-4 h-4 inline mr-2" /> {error}
+                        </div>
+                    )}
+
+                    {showAddForm && (
+                        <div className="p-4 bg-white rounded shadow">
+                            <h3 className="text-lg font-semibold mb-4">Add New Patient</h3>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    value={newPatient.username}
+                                    onChange={(e) => setNewPatient({ ...newPatient, username: e.target.value })}
+                                    placeholder="Username"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="password"
+                                    value={newPatient.password}
+                                    onChange={(e) => setNewPatient({ ...newPatient, password: e.target.value })}
+                                    placeholder="Password"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    value={newPatient.firstName}
+                                    onChange={(e) => setNewPatient({ ...newPatient, firstName: e.target.value })}
+                                    placeholder="First Name"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="text"
+                                    value={newPatient.lastName}
+                                    onChange={(e) => setNewPatient({ ...newPatient, lastName: e.target.value })}
+                                    placeholder="Last Name"
+                                    className="p-2 border rounded"
+                                />
+                                <select
+                                    value={newPatient.gender}
+                                    onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                                    className="p-2 border rounded"
+                                >
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <input
+                                    type="date"
+                                    value={newPatient.birthDate}
+                                    onChange={(e) => setNewPatient({ ...newPatient, birthDate: e.target.value })}
+                                    placeholder="Birth Date"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="email"
+                                    value={newPatient.email}
+                                    onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
+                                    placeholder="Email"
+                                    className="p-2 border rounded"
+                                />
+                                <input
+                                    type="tel"
+                                    value={newPatient.phone}
+                                    onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                                    placeholder="Phone"
+                                    className="p-2 border rounded"
+                                />
+                            </div>
+
+                            <div className="mt-4 flex space-x-2">
+                                <button 
+                                    onClick={addPatient} 
+                                    disabled={!newPatient.username || !newPatient.password || !newPatient.firstName || !newPatient.lastName || !newPatient.birthDate || !newPatient.email || !newPatient.phone}
+                                    className="p-2 bg-green-500 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Add Patient
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setShowAddForm(false);
+                                        setError(null);
+                                    }} 
+                                    className="p-2 bg-gray-300 rounded"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <h3 className="text-lg font-semibold">Current Patients ({patients.length})</h3>
+                        {patients.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No patients registered yet.</p>
+                            </div>
+                        ) : (
+                            patients.map((patient) => (
+                                <div key={patient.id} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">{patient.name}</h4>
+                                            <p className="text-sm text-gray-600">Username: {patient.username}</p>
+                                            <p className="text-sm text-blue-600 font-medium">Patient ID: {patient.patientId}</p>
+                                        </div>
+                                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                                            Active Patient
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Audit Log Component
+        const AuditLog = () => {
+            const { user } = useAuth();
+            const [auditLogs, setAuditLogs] = useState([]);
+
+            useEffect(() => {
+                const logs = mockData.auditLogs.filter(log => 
+                    user.role === 'receptionist' || log.userId === user.id
+                );
+                setAuditLogs(logs);
+            }, [user]);
+
+            return (
+                <div className="space-y-6">
+                    <h2 className="text-xl font-bold">Audit Logs</h2>
+                    <div className="grid grid-cols-1 gap-4">
+                        {auditLogs.length === 0 ? (
+                            <div className="p-4 bg-gray-50 rounded text-center">
+                                <p className="text-gray-600">No audit logs available.</p>
+                            </div>
+                        ) : (
+                            auditLogs.map((log, index) => (
+                                <div key={index} className="p-4 bg-white rounded shadow border">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h4 className="font-medium text-lg">{log.action}</h4>
+                                            <p className="text-sm text-gray-600">User: {log.userName} ({log.role})</p>
+                                            <p className="text-sm text-gray-600">Details: {log.details}</p>
+                                            <p className="text-xs text-gray-500">Timestamp: {new Date(log.timestamp).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Dashboard Component
+        const Dashboard = () => {
+            const { user, logout } = useAuth();
+            const [activeTab, setActiveTab] = useState('overview');
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-6">
+                    <div className="flex justify-between mb-6">
+                        <div className="flex items-center space-x-2">
+                            <Building2 className="w-6 h-6" />
+                            <h1 className="text-xl font-bold">Healthcare System</h1>
+                            {user.specialization && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                                    {user.specialization}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">Welcome, {user.name}</span>
+                            <button 
+                                onClick={logout}
+                                className="flex items-center p-2 bg-red-500 text-white rounded"
+                            >
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Navigation Tabs */}
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setActiveTab('overview')}
+                            className={`mr-2 p-2 ${activeTab === 'overview' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                        >
+                            Overview
+                        </button>
+                        {user.role === 'receptionist' && (
+                            <>
+                                <button
+                                    onClick={() => setActiveTab('doctors')}
+                                    className={`mr-2 p-2 ${activeTab === 'doctors' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Doctor Management
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('patients')}
+                                    className={`mr-2 p-2 ${activeTab === 'patients' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Patient Management
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('audit')}
+                                    className={`mr-2 p-2 ${activeTab === 'audit' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Audit Logs
+                                </button>
+                            </>
+                        )}
+                        {user.role === 'patient' && (
+                            <>
+                                <button
+                                    onClick={() => setActiveTab('appointments')}
+                                    className={`mr-2 p-2 ${activeTab === 'appointments' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Appointments
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('authorize')}
+                                    className={`mr-2 p-2 ${activeTab === 'authorize' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Authorize Doctors
+                                </button>
+                            </>
+                        )}
+                        {(user.role === 'doctor' || user.role === 'clinical' || user.role === 'nurse') && (
+                            <>
+                                <button
+                                    onClick={() => setActiveTab('appointments')}
+                                    className={`mr-2 p-2 ${activeTab === 'appointments' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Appointments
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('patient-data')}
+                                    className={`mr-2 p-2 ${activeTab === 'patient-data' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Patient Data
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('data-transfer')}
+                                    className={`mr-2 p-2 ${activeTab === 'data-transfer' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Data Transfer
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('audit')}
+                                    className={`mr-2 p-2 ${activeTab === 'audit' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded`}
+                                >
+                                    Audit Logs
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Content based on active tab */}
+                    {activeTab === 'overview' && (
+                        <div className="p-6 bg-white rounded shadow">
+                            <h2 className="text-xl font-bold mb-4">Welcome to the Healthcare System</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div className="p-4 bg-blue-50 rounded">
+                                    <h3 className="font-semibold text-blue-900">Your Role</h3>
+                                    <p className="text-blue-700">{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</p>
+                                    {user.specialization && (
+                                        <p className="text-sm text-blue-600">Specialization: {user.specialization}</p>
+                                    )}
+                                </div>
+                                <div className="p-4 bg-green-50 rounded">
+                                    <h3 className="font-semibold text-green-900">Organization</h3>
+                                    <p className="text-green-700">{user.organization || "Patient Portal"}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'doctors' && user.role === 'receptionist' && (
+                        <DoctorManagement />
+                    )}
+                    {activeTab === 'patients' && user.role === 'receptionist' && (
+                        <PatientManagement />
+                    )}
+                    {activeTab === 'appointments' && user.role === 'patient' && (
+                        <AppointmentBooking />
+                    )}
+                    {activeTab === 'appointments' && (user.role === 'doctor' || user.role === 'clinical') && (
+                        <DoctorAppointments />
+                    )}
+                    {activeTab === 'patient-data' && (user.role === 'doctor' || user.role === 'clinical' || user.role === 'nurse') && (
+                        <PatientDataManagement />
+                    )}
+                    {activeTab === 'data-transfer' && (user.role === 'doctor' || user.role === 'clinical' || user.role === 'nurse') && (
+                        <DataTransfer />
+                    )}
+                    {activeTab === 'authorize' && user.role === 'patient' && (
+                        <PatientAuthorization />
+                    )}
+                    {activeTab === 'audit' && (
+                        <AuditLog />
+                    )}
+                </div>
+            );
+        };
+
+        // App Components
+        const App = () => {
+            return React.createElement(AuthProvider, null,
+                React.createElement(AppContent, null)
+            );
+        };
+
+        const AppContent = () => {
+            const { user } = useAuth();
+            return user ? React.createElement(Dashboard, null) : React.createElement(Login, null);
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
